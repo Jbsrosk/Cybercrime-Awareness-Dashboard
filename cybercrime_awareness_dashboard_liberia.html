@@ -1,0 +1,890 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Cyber Awareness Hub — Liberian SME Dashboard</title>
+  <link href="https://fonts.googleapis.com/css2?family=Syne:wght@400;500;700&family=DM+Sans:wght@400;500&display=swap" rel="stylesheet" />
+  <script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #f9f8f5;
+      --surface: #ffffff;
+      --surface2: #f1efe8;
+      --border: rgba(0,0,0,0.12);
+      --border2: rgba(0,0,0,0.22);
+      --text: #1a1a18;
+      --text2: #5f5e5a;
+      --text3: #888780;
+      --radius-md: 8px;
+      --radius-lg: 14px;
+      --radius-xl: 20px;
+      --blue-dark: #042C53;
+      --blue-mid: #185FA5;
+      --blue-light: #E6F1FB;
+      --green-dark: #3B6D11;
+      --green-light: #EAF3DE;
+      --amber-dark: #854F0B;
+      --amber-light: #FAEEDA;
+      --red-dark: #A32D2D;
+      --red-light: #FCEBEB;
+      --teal-dark: #0F6E56;
+      --teal-light: #E1F5EE;
+      --pink-dark: #993556;
+      --pink-light: #FBEAF0;
+    }
+
+    @media (prefers-color-scheme: dark) {
+      :root {
+        --bg: #1a1a18;
+        --surface: #2c2c2a;
+        --surface2: #222220;
+        --border: rgba(255,255,255,0.1);
+        --border2: rgba(255,255,255,0.2);
+        --text: #f1efe8;
+        --text2: #b4b2a9;
+        --text3: #888780;
+        --blue-light: #0C447C;
+        --green-light: #27500A;
+        --amber-light: #633806;
+        --red-light: #791F1F;
+        --teal-light: #085041;
+        --pink-light: #72243E;
+      }
+    }
+
+    body {
+      font-family: 'DM Sans', sans-serif;
+      background: var(--bg);
+      color: var(--text);
+      min-height: 100vh;
+      padding: 0;
+    }
+
+    /* TOP BAR */
+    .topbar {
+      background: var(--blue-dark);
+      color: #E6F1FB;
+      padding: 10px 2rem;
+      font-size: 12px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      letter-spacing: 0.03em;
+    }
+    .topbar-left { display: flex; align-items: center; gap: 10px; }
+    .topbar-dot { width: 7px; height: 7px; border-radius: 50%; background: #5DCAA5; display: inline-block; }
+
+    /* HERO */
+    .hero {
+      background: var(--blue-dark);
+      color: #E6F1FB;
+      padding: 2.5rem 2rem 3rem;
+    }
+    .hero-inner { max-width: 900px; margin: 0 auto; }
+    .hero-tag {
+      font-size: 11px;
+      letter-spacing: 0.12em;
+      text-transform: uppercase;
+      color: #5DCAA5;
+      margin-bottom: 12px;
+      font-weight: 500;
+    }
+    .hero-title {
+      font-family: 'Syne', sans-serif;
+      font-size: clamp(28px, 5vw, 44px);
+      font-weight: 700;
+      line-height: 1.15;
+      margin-bottom: 12px;
+      color: #ffffff;
+    }
+    .hero-title span { color: #5DCAA5; }
+    .hero-sub {
+      font-size: 15px;
+      color: #85B7EB;
+      max-width: 560px;
+      line-height: 1.65;
+    }
+    .hero-meta {
+      display: flex;
+      gap: 12px;
+      margin-top: 1.5rem;
+      flex-wrap: wrap;
+    }
+    .hero-badge {
+      font-size: 12px;
+      padding: 5px 14px;
+      border-radius: 20px;
+      border: 1px solid rgba(255,255,255,0.15);
+      color: #B5D4F4;
+    }
+
+    /* MAIN LAYOUT */
+    .main { max-width: 900px; margin: 0 auto; padding: 2rem 1.5rem 4rem; }
+
+    /* METRICS */
+    .metric-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
+      gap: 10px;
+      margin-bottom: 2rem;
+    }
+    .metric-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.25rem;
+    }
+    .metric-label { font-size: 11px; color: var(--text3); text-transform: uppercase; letter-spacing: 0.05em; margin-bottom: 6px; }
+    .metric-value { font-family: 'Syne', sans-serif; font-size: 24px; font-weight: 700; color: var(--text); margin-bottom: 3px; }
+    .metric-sub { font-size: 11px; color: var(--text2); }
+
+    /* NAV */
+    .nav { display: flex; gap: 6px; margin-bottom: 1.75rem; flex-wrap: wrap; }
+    .nav-btn {
+      font-size: 13px;
+      font-family: 'DM Sans', sans-serif;
+      padding: 8px 18px;
+      border-radius: 20px;
+      border: 0.5px solid var(--border2);
+      background: var(--surface);
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .nav-btn.active { background: var(--blue-dark); color: #E6F1FB; border-color: var(--blue-dark); }
+    .nav-btn:hover:not(.active) { background: var(--surface2); color: var(--text); }
+
+    /* SECTIONS */
+    .section { display: none; }
+    .section.visible { display: block; }
+
+    /* THREATS */
+    .threat-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+      gap: 12px;
+      margin-bottom: 1.5rem;
+    }
+    .threat-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.1rem 1.25rem;
+      cursor: pointer;
+      transition: border-color 0.15s, transform 0.1s;
+    }
+    .threat-card:hover { border-color: var(--border2); transform: translateY(-2px); }
+    .threat-icon {
+      width: 38px; height: 38px;
+      border-radius: var(--radius-md);
+      display: flex; align-items: center; justify-content: center;
+      margin-bottom: 10px;
+    }
+    .threat-name { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 5px; }
+    .threat-desc { font-size: 12px; color: var(--text2); line-height: 1.55; margin-bottom: 10px; }
+    .risk-badge { font-size: 11px; font-weight: 500; padding: 3px 10px; border-radius: 10px; display: inline-block; }
+    .risk-high { background: var(--red-light); color: var(--red-dark); }
+    .risk-medium { background: var(--amber-light); color: var(--amber-dark); }
+    .risk-low { background: var(--green-light); color: var(--green-dark); }
+
+    .detail-panel {
+      background: var(--surface2);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem 1.5rem;
+      margin-bottom: 1.5rem;
+      display: none;
+      border-left: 3px solid var(--blue-mid);
+    }
+    .detail-panel.visible { display: block; }
+    .detail-title { font-size: 16px; font-weight: 500; color: var(--text); margin-bottom: 8px; }
+    .detail-body { font-size: 13px; color: var(--text2); line-height: 1.7; margin-bottom: 12px; }
+    .tip-list { list-style: none; padding: 0; }
+    .tip-list li {
+      font-size: 13px; color: var(--text2);
+      padding: 5px 0 5px 18px;
+      position: relative;
+      line-height: 1.5;
+    }
+    .tip-list li::before {
+      content: '';
+      position: absolute; left: 0; top: 11px;
+      width: 6px; height: 6px;
+      border-radius: 50%;
+      background: var(--blue-mid);
+    }
+
+    /* QUIZ */
+    .quiz-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 1rem;
+    }
+    .quiz-q { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 14px; line-height: 1.55; }
+    .quiz-opts { display: flex; flex-direction: column; gap: 8px; }
+    .quiz-opt {
+      font-size: 13px; font-family: 'DM Sans', sans-serif;
+      padding: 10px 15px;
+      border-radius: var(--radius-md);
+      border: 0.5px solid var(--border2);
+      background: var(--surface);
+      color: var(--text);
+      cursor: pointer; text-align: left;
+      transition: all 0.15s;
+    }
+    .quiz-opt:hover:not(:disabled) { background: var(--surface2); }
+    .quiz-opt.correct { background: var(--green-light); border-color: var(--green-dark); color: var(--green-dark); }
+    .quiz-opt.wrong { background: var(--red-light); border-color: var(--red-dark); color: var(--red-dark); }
+    .quiz-opt:disabled { cursor: default; }
+    .quiz-feedback {
+      font-size: 12px; margin-top: 10px;
+      padding: 9px 13px;
+      border-radius: var(--radius-md);
+      display: none; line-height: 1.55;
+    }
+    .quiz-feedback.show { display: block; }
+    .quiz-feedback.good { background: var(--green-light); color: var(--green-dark); }
+    .quiz-feedback.bad { background: var(--red-light); color: var(--red-dark); }
+    .score-row { display: flex; align-items: center; gap: 12px; margin-top: 1rem; }
+    .score-label { font-size: 13px; color: var(--text2); white-space: nowrap; }
+    .score-bar-wrap { flex: 1; background: var(--surface2); border-radius: 20px; height: 8px; overflow: hidden; }
+    .score-bar { height: 100%; border-radius: 20px; background: var(--blue-mid); transition: width 0.4s ease; }
+    .score-txt { font-size: 13px; font-weight: 500; color: var(--text); white-space: nowrap; }
+
+    /* ASSESSMENT */
+    .assess-item {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1rem 1.25rem;
+      margin-bottom: 10px;
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      gap: 1rem;
+      flex-wrap: wrap;
+    }
+    .assess-label { font-size: 13px; color: var(--text); flex: 1; min-width: 180px; line-height: 1.5; }
+    .assess-toggle { display: flex; gap: 6px; flex-shrink: 0; }
+    .toggle-btn {
+      font-size: 12px; font-family: 'DM Sans', sans-serif;
+      padding: 6px 16px;
+      border-radius: 20px;
+      border: 0.5px solid var(--border2);
+      background: var(--surface2);
+      color: var(--text2);
+      cursor: pointer;
+      transition: all 0.15s;
+    }
+    .toggle-btn.yes-active { background: var(--green-light); border-color: var(--green-dark); color: var(--green-dark); font-weight: 500; }
+    .toggle-btn.no-active { background: var(--red-light); border-color: var(--red-dark); color: var(--red-dark); font-weight: 500; }
+    .assess-result {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.5rem;
+      margin-top: 1rem;
+      display: none;
+    }
+    .assess-result.show { display: block; }
+    .res-score { font-family: 'Syne', sans-serif; font-size: 48px; font-weight: 700; color: var(--text); margin-bottom: 4px; }
+    .res-label { font-size: 15px; font-weight: 500; color: var(--text); margin-bottom: 12px; }
+    .res-recs { font-size: 13px; color: var(--text2); line-height: 1.7; }
+
+    /* CHARTS */
+    .chart-row { display: grid; grid-template-columns: repeat(auto-fit, minmax(280px, 1fr)); gap: 16px; margin-bottom: 1.5rem; }
+    .chart-wrap {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+    }
+    .chart-title { font-size: 13px; font-weight: 500; color: var(--text); margin-bottom: 14px; }
+    .chart-legend { display: flex; gap: 12px; margin-top: 10px; flex-wrap: wrap; }
+    .chart-legend span { display: flex; align-items: center; gap: 5px; font-size: 12px; color: var(--text2); }
+    .legend-dot { width: 10px; height: 10px; border-radius: 2px; flex-shrink: 0; }
+
+    /* LEGAL */
+    .law-card {
+      background: var(--surface);
+      border: 0.5px solid var(--border);
+      border-radius: var(--radius-lg);
+      padding: 1.25rem;
+      margin-bottom: 12px;
+    }
+    .law-header { display: flex; align-items: flex-start; gap: 12px; margin-bottom: 8px; }
+    .law-icon {
+      width: 34px; height: 34px; flex-shrink: 0;
+      border-radius: var(--radius-md);
+      background: var(--blue-light);
+      display: flex; align-items: center; justify-content: center;
+    }
+    .law-title { font-size: 14px; font-weight: 500; color: var(--text); margin-bottom: 3px; }
+    .law-year { font-size: 11px; color: var(--text3); }
+    .law-body { font-size: 13px; color: var(--text2); line-height: 1.65; margin-bottom: 10px; }
+    .law-tag { font-size: 11px; padding: 4px 10px; border-radius: 10px; background: var(--amber-light); color: var(--amber-dark); display: inline-block; }
+
+    /* FOOTER */
+    footer {
+      background: var(--blue-dark);
+      color: #85B7EB;
+      text-align: center;
+      padding: 1.5rem 2rem;
+      font-size: 12px;
+      line-height: 1.8;
+    }
+    footer strong { color: #E6F1FB; }
+
+    /* SUBMIT BTN */
+    .submit-btn {
+      font-size: 13px; font-family: 'DM Sans', sans-serif;
+      padding: 10px 22px;
+      border-radius: 20px;
+      border: 0.5px solid var(--blue-mid);
+      background: var(--blue-dark);
+      color: #E6F1FB;
+      cursor: pointer;
+      margin-top: 0.75rem;
+      transition: opacity 0.15s;
+    }
+    .submit-btn:hover { opacity: 0.85; }
+
+    .section-heading {
+      font-family: 'Syne', sans-serif;
+      font-size: 18px;
+      font-weight: 700;
+      color: var(--text);
+      margin-bottom: 1rem;
+    }
+  </style>
+</head>
+<body>
+
+<!-- TOP BAR -->
+<div class="topbar">
+  <div class="topbar-left">
+    <span class="topbar-dot"></span>
+    <span>Liberia Cybersecurity Awareness Platform &mdash; Built for SMEs under the Cybercrime Act 2025</span>
+  </div>
+  <span>Powered by LCCPMA guidelines</span>
+</div>
+
+<!-- HERO -->
+<div class="hero">
+  <div class="hero-inner">
+    <p class="hero-tag">West Africa &bull; Liberia &bull; 2025</p>
+    <h1 class="hero-title">Cyber Awareness <span>Hub</span></h1>
+    <p class="hero-sub">A free cybersecurity awareness dashboard for Liberian small and medium enterprises — covering threats, self-assessment, legal obligations, and training.</p>
+    <div class="hero-meta">
+      <span class="hero-badge">Cybercrime Act 2025</span>
+      <span class="hero-badge">National Strategy 2025–2029</span>
+      <span class="hero-badge">ECOWAS aligned</span>
+      <span class="hero-badge">Free for all SMEs</span>
+    </div>
+  </div>
+</div>
+
+<!-- MAIN -->
+<div class="main">
+
+  <!-- METRICS -->
+  <div class="metric-grid">
+    <div class="metric-card">
+      <p class="metric-label">Top threat in LR</p>
+      <p class="metric-value">Phishing</p>
+      <p class="metric-sub">Digital fraud #1</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label">Internet penetration</p>
+      <p class="metric-value">23.5%</p>
+      <p class="metric-sub">Growing rapidly</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label">ITU Cybersecurity rank</p>
+      <p class="metric-value">Low tier</p>
+      <p class="metric-sub">Global Index 2024</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label">Cybercrime Act</p>
+      <p class="metric-value">2025</p>
+      <p class="metric-sub">Now in force</p>
+    </div>
+    <div class="metric-card">
+      <p class="metric-label">SMEs unprepared</p>
+      <p class="metric-value">52%</p>
+      <p class="metric-sub">West Africa avg.</p>
+    </div>
+  </div>
+
+  <!-- NAV -->
+  <div class="nav">
+    <button class="nav-btn active" onclick="showTab('threats', this)">Threat Library</button>
+    <button class="nav-btn" onclick="showTab('quiz', this)">Knowledge Quiz</button>
+    <button class="nav-btn" onclick="showTab('assess', this)">Self-Assessment</button>
+    <button class="nav-btn" onclick="showTab('stats', this)">Statistics</button>
+    <button class="nav-btn" onclick="showTab('legal', this)">Legal Framework</button>
+  </div>
+
+  <!-- SECTION: THREATS -->
+  <div class="section visible" id="tab-threats">
+    <p class="section-heading">Cyber threat library</p>
+    <div class="threat-grid">
+      <div class="threat-card" onclick="showDetail('phishing')">
+        <div class="threat-icon" style="background:var(--blue-light);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><rect x="3" y="5" width="18" height="14" rx="2"/><path d="M3 7l9 6 9-6"/></svg>
+        </div>
+        <p class="threat-name">Phishing &amp; Email Fraud</p>
+        <p class="threat-desc">Fake emails tricking staff into revealing passwords or transferring money.</p>
+        <span class="risk-badge risk-high">High risk</span>
+      </div>
+      <div class="threat-card" onclick="showDetail('malware')">
+        <div class="threat-icon" style="background:var(--red-light);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#A32D2D" stroke-width="2"><circle cx="12" cy="12" r="9"/><path d="M12 8v4m0 4h.01"/></svg>
+        </div>
+        <p class="threat-name">Malware &amp; Ransomware</p>
+        <p class="threat-desc">Software that encrypts or destroys your business data, demanding payment.</p>
+        <span class="risk-badge risk-high">High risk</span>
+      </div>
+      <div class="threat-card" onclick="showDetail('identity')">
+        <div class="threat-icon" style="background:var(--amber-light);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#854F0B" stroke-width="2"><path d="M20 21v-2a4 4 0 0 0-4-4H8a4 4 0 0 0-4 4v2"/><circle cx="12" cy="7" r="4"/></svg>
+        </div>
+        <p class="threat-name">Identity Theft</p>
+        <p class="threat-desc">Criminals stealing customer or employee data to commit fraud.</p>
+        <span class="risk-badge risk-high">High risk</span>
+      </div>
+      <div class="threat-card" onclick="showDetail('mobilemoney')">
+        <div class="threat-icon" style="background:var(--teal-light);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#0F6E56" stroke-width="2"><rect x="5" y="2" width="14" height="20" rx="2"/><path d="M12 18h.01"/></svg>
+        </div>
+        <p class="threat-name">Mobile Money Scams</p>
+        <p class="threat-desc">Fake agents and SIM swaps targeting mobile money accounts.</p>
+        <span class="risk-badge risk-high">High risk</span>
+      </div>
+      <div class="threat-card" onclick="showDetail('databreach')">
+        <div class="threat-icon" style="background:var(--pink-light);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#993556" stroke-width="2"><ellipse cx="12" cy="5" rx="9" ry="3"/><path d="M3 5v14c0 1.66 4.03 3 9 3s9-1.34 9-3V5"/></svg>
+        </div>
+        <p class="threat-name">Data Breaches</p>
+        <p class="threat-desc">Unauthorized access to confidential customer or business records.</p>
+        <span class="risk-badge risk-medium">Medium risk</span>
+      </div>
+      <div class="threat-card" onclick="showDetail('social')">
+        <div class="threat-icon" style="background:var(--green-light);">
+          <svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="#3B6D11" stroke-width="2"><path d="M21 15a2 2 0 0 1-2 2H7l-4 4V5a2 2 0 0 1 2-2h14a2 2 0 0 1 2 2z"/></svg>
+        </div>
+        <p class="threat-name">Social Engineering</p>
+        <p class="threat-desc">Manipulating employees through trust to gain access to systems.</p>
+        <span class="risk-badge risk-medium">Medium risk</span>
+      </div>
+    </div>
+    <div class="detail-panel" id="detail-panel">
+      <p class="detail-title" id="detail-title"></p>
+      <p class="detail-body" id="detail-body"></p>
+      <ul class="tip-list" id="detail-tips"></ul>
+    </div>
+  </div>
+
+  <!-- SECTION: QUIZ -->
+  <div class="section" id="tab-quiz">
+    <p class="section-heading">Knowledge quiz</p>
+    <div id="quiz-container"></div>
+    <div class="score-row">
+      <span class="score-label">Score:</span>
+      <div class="score-bar-wrap"><div class="score-bar" id="score-bar" style="width:0%"></div></div>
+      <span class="score-txt" id="score-txt">0 / 5</span>
+    </div>
+  </div>
+
+  <!-- SECTION: SELF-ASSESSMENT -->
+  <div class="section" id="tab-assess">
+    <p class="section-heading">SME self-assessment</p>
+    <div id="assess-items"></div>
+    <button class="submit-btn" onclick="calcAssess()">Calculate my cyber hygiene score</button>
+    <div class="assess-result" id="assess-result">
+      <p class="res-score" id="res-score"></p>
+      <p class="res-label" id="res-label"></p>
+      <p class="res-recs" id="res-recs"></p>
+    </div>
+  </div>
+
+  <!-- SECTION: STATS -->
+  <div class="section" id="tab-stats">
+    <p class="section-heading">Cybersecurity statistics</p>
+    <div class="chart-row">
+      <div class="chart-wrap">
+        <p class="chart-title">Top cyber threats facing Liberian SMEs</p>
+        <div style="position:relative;height:240px;">
+          <canvas id="barChart" role="img" aria-label="Bar chart of top cyber threats: Phishing 78%, Mobile Money Scams 65%, Malware 54%, Identity Theft 48%, Data Breaches 32%">Phishing 78%, Mobile Money Scams 65%, Malware 54%, Identity Theft 48%, Data Breaches 32%</canvas>
+        </div>
+      </div>
+      <div class="chart-wrap">
+        <p class="chart-title">SME cybersecurity readiness</p>
+        <div style="position:relative;height:200px;">
+          <canvas id="pieChart" role="img" aria-label="Pie chart: Not prepared 52%, Partially prepared 33%, Well prepared 15%">Not prepared 52%, Partially prepared 33%, Well prepared 15%</canvas>
+        </div>
+        <div class="chart-legend">
+          <span><span class="legend-dot" style="background:#E24B4A;"></span>Not prepared 52%</span>
+          <span><span class="legend-dot" style="background:#EF9F27;"></span>Partial 33%</span>
+          <span><span class="legend-dot" style="background:#639922;"></span>Well prepared 15%</span>
+        </div>
+      </div>
+    </div>
+    <div class="chart-wrap">
+      <p class="chart-title">Liberia digital growth indicators (% of population)</p>
+      <div style="position:relative;height:200px;">
+        <canvas id="lineChart" role="img" aria-label="Bar chart: Mobile penetration 59%, 2G/3G coverage 85%, 4G coverage 80%, Internet penetration 24%">Mobile 59%, 2G/3G 85%, 4G 80%, Internet 24%</canvas>
+      </div>
+    </div>
+  </div>
+
+  <!-- SECTION: LEGAL -->
+  <div class="section" id="tab-legal">
+    <p class="section-heading">Legal framework</p>
+    <div class="law-card">
+      <div class="law-header">
+        <div class="law-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><path d="M12 22s-8-4.5-8-11.8A8 8 0 0 1 12 2a8 8 0 0 1 8 8.2c0 7.3-8 11.8-8 11.8z"/></svg>
+        </div>
+        <div>
+          <p class="law-title">Cybercrime Act 2025</p>
+          <p class="law-year">Passed by Liberian Senate &bull; In force 2025</p>
+        </div>
+      </div>
+      <p class="law-body">Liberia's landmark legislation criminalizes digital fraud, unauthorized system access, identity theft, online harassment, and data breaches. It provides the legal foundation for Liberia's growing digital economy and aligns with international cybercrime frameworks. Businesses are now legally required to protect customer data and may face liability for breaches resulting from negligence.</p>
+      <span class="law-tag">Covers: fraud, identity theft, data breaches, harassment, unauthorized access</span>
+    </div>
+    <div class="law-card">
+      <div class="law-header">
+        <div class="law-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><rect x="2" y="3" width="20" height="18" rx="2"/><path d="M8 7h8M8 11h8M8 15h4"/></svg>
+        </div>
+        <div>
+          <p class="law-title">National Cybersecurity Strategy 2025–2029</p>
+          <p class="law-year">Liberia Telecommunications Authority &bull; Launched February 2026</p>
+        </div>
+      </div>
+      <p class="law-body">An 8-priority roadmap covering universal connectivity, digital inclusion, a national digital addressing system, cybersecurity and data sovereignty, e-government, and ICT-driven innovation. Built around four strategic pillars designed to deliver measurable outcomes and reduce the digital divide in rural areas.</p>
+      <span class="law-tag">Pillars: connectivity, inclusion, security, e-governance</span>
+    </div>
+    <div class="law-card">
+      <div class="law-header">
+        <div class="law-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M12 8v4l3 3"/></svg>
+        </div>
+        <div>
+          <p class="law-title">LCCPMA — Liberia Cyber Crime Prevention &amp; Mitigation Agency</p>
+          <p class="law-year">Ministry of Posts &amp; Telecommunications</p>
+        </div>
+      </div>
+      <p class="law-body">The national body mandated to provide cybersecurity education, digital forensics training, technical assistance to law enforcement, and cyber defensive capabilities to business communities. The LCCPMA also deploys free cybersecurity toolkits to government ministries and works with journalists, businesses, and the public to build a culture of cyber awareness.</p>
+      <span class="law-tag">Free resources: toolkits, training, incident support</span>
+    </div>
+    <div class="law-card">
+      <div class="law-header">
+        <div class="law-icon">
+          <svg width="16" height="16" viewBox="0 0 24 24" fill="none" stroke="#185FA5" stroke-width="2"><circle cx="12" cy="12" r="10"/><path d="M2 12h20M12 2a15 15 0 0 1 0 20M12 2a15 15 0 0 0 0 20"/></svg>
+        </div>
+        <div>
+          <p class="law-title">ECOWAS Regional Cybersecurity Cooperation</p>
+          <p class="law-year">West Africa Regional Framework</p>
+        </div>
+      </div>
+      <p class="law-body">Liberia is a member of the ECOWAS cybersecurity framework, which enables cross-border intelligence sharing, harmonized standards, and capacity-building across all 15 West African member states. Through ECOWAS alignment, Liberia can access international technical assistance and funding for cybersecurity capacity building.</p>
+      <span class="law-tag">Portal: cyberportal.ecowas.int</span>
+    </div>
+  </div>
+
+</div><!-- /main -->
+
+<!-- FOOTER -->
+<footer>
+  <strong>Cyber Awareness Hub &mdash; Liberian SME Cybersecurity Dashboard</strong><br/>
+  Built in alignment with the Cybercrime Act 2025 &bull; National Cybersecurity Strategy 2025&ndash;2029 &bull; LCCPMA Guidelines<br/>
+  This tool is free to use and share. For official cybersecurity support, contact the LCCPMA via the Ministry of Posts &amp; Telecommunications, Liberia.
+</footer>
+
+<script>
+  const threats = {
+    phishing: {
+      title: 'Phishing & Email Fraud',
+      body: 'Phishing is one of the most common attacks against Liberian businesses. Attackers send fake emails pretending to be banks, telecoms, or government agencies to steal credentials or trigger fraudulent money transfers. With e-commerce and e-government growing fast in Liberia, this threat is escalating.',
+      tips: [
+        'Never click links in unexpected emails — go directly to the website instead.',
+        'Verify all wire transfer or payment requests by calling the sender on a known, trusted number.',
+        'Train all staff to recognize suspicious email patterns such as urgency, unusual senders, and grammar errors.',
+        'Use email spam filters and enable two-factor authentication on all business accounts.',
+        'Report phishing attempts to the LCCPMA and your email provider.'
+      ]
+    },
+    malware: {
+      title: 'Malware & Ransomware',
+      body: 'Malware can enter through infected USB drives, email attachments, or unsafe websites. Ransomware locks all your files and demands payment — often devastating for small businesses with no backups. In West Africa, ransomware attacks on businesses have surged alongside increased internet adoption.',
+      tips: [
+        'Install reputable antivirus software and ensure it updates automatically.',
+        'Back up all business data regularly to an offline drive or secure cloud storage.',
+        'Never open email attachments from unknown or unexpected senders.',
+        'Keep your operating system and all software updated with the latest security patches.',
+        'Never plug in USB drives of unknown origin into business computers.'
+      ]
+    },
+    identity: {
+      title: 'Identity Theft',
+      body: 'Criminals steal employee or customer data to open fraudulent accounts, take out loans, or commit other financial crimes in the victim\'s name. Under Liberia\'s Cybercrime Act 2025, identity theft is a serious criminal offense carrying significant penalties for perpetrators — and potential liability for businesses that fail to protect data.',
+      tips: [
+        'Limit access to personal data — only staff who need it for their role should have it.',
+        'Shred all physical documents containing personal information before disposal.',
+        'Conduct background checks on staff who handle sensitive customer data.',
+        'Notify affected customers and the LCCPMA immediately if a data breach occurs.',
+        'Use encrypted databases for storing any customer personal information.'
+      ]
+    },
+    mobilemoney: {
+      title: 'Mobile Money Scams',
+      body: 'With mobile money booming across Liberia, criminals use SIM swapping, fake agents, and impersonation to drain accounts. This is among the fastest-growing threat categories in West Africa. Businesses that accept mobile payments are particularly exposed.',
+      tips: [
+        'Never share your PIN or OTP with anyone — not even someone claiming to be an agent or telecom employee.',
+        'Register a SIM lock with your telecom provider to prevent SIM swapping.',
+        'Verify all incoming mobile money transactions carefully before confirming services or releasing goods.',
+        'Train staff to recognize common mobile money scam scripts and social engineering tactics.',
+        'Report suspicious messages or calls to your mobile money provider immediately.'
+      ]
+    },
+    databreach: {
+      title: 'Data Breaches',
+      body: 'A data breach exposes confidential customer or business records to unauthorized parties. Under the Cybercrime Act 2025, businesses may have legal reporting obligations when breaches occur. Even small businesses hold valuable data — customer names, phone numbers, and financial records — that criminals can sell or exploit.',
+      tips: [
+        'Encrypt sensitive data stored on computers, phones, or in the cloud.',
+        'Use strong, unique passwords for every business system and account.',
+        'Review and restrict who has access to sensitive files on a regular basis.',
+        'Prepare an incident response plan before a breach occurs — know who to call and what steps to take.',
+        'Consider basic cyber insurance to help cover costs if a breach occurs.'
+      ]
+    },
+    social: {
+      title: 'Social Engineering',
+      body: 'Attackers manipulate people rather than systems — posing as IT support staff, government officials, bank representatives, or trusted partners to gain access to sensitive systems or information. This is especially effective in environments with low cyber awareness and is very common in West Africa.',
+      tips: [
+        'Establish clear verification procedures for anyone requesting system access or sensitive information.',
+        'Never allow unknown visitors unsupervised access to office equipment or server rooms.',
+        'Train staff to question unusual requests, even from apparent authority figures.',
+        'Create a workplace culture where employees feel safe reporting suspicious interactions without judgment.',
+        'Implement a "call-back" policy: if someone calls requesting access, hang up and call them back on their official number.'
+      ]
+    }
+  };
+
+  function showDetail(key) {
+    const t = threats[key];
+    document.getElementById('detail-title').textContent = t.title;
+    document.getElementById('detail-body').textContent = t.body;
+    const ul = document.getElementById('detail-tips');
+    ul.innerHTML = t.tips.map(tip => `<li>${tip}</li>`).join('');
+    const panel = document.getElementById('detail-panel');
+    panel.classList.add('visible');
+    panel.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  const questions = [
+    {
+      q: 'A supplier emails asking you to transfer payment to a new bank account urgently. What do you do?',
+      opts: ['Transfer immediately — they said it\'s urgent', 'Call the supplier on their known number to verify', 'Reply to the email asking for confirmation', 'Forward to a colleague to decide'],
+      correct: 1,
+      feedback: 'Correct approach: Always verify payment change requests by calling on a known number. This is a classic Business Email Compromise (BEC) attack and one of the most costly scams facing Liberian businesses.'
+    },
+    {
+      q: 'You find a USB drive in your office mailbox labeled "2025 Staff Salary Bonuses". What do you do?',
+      opts: ['Plug it into your computer to check the contents', 'Hand it to an IT professional or security officer first', 'Delete the label and pass it to a colleague', 'Plug it into a personal phone instead'],
+      correct: 1,
+      feedback: 'USB drives can contain malware designed to auto-run the moment they are plugged in. Always report suspicious physical media to a security professional — never plug in unknown drives.'
+    },
+    {
+      q: 'Which law in Liberia makes unauthorized access to computer systems a criminal offense?',
+      opts: ['The Telecommunications Act 2007', 'The Electronic Commerce Act', 'The Cybercrime Act 2025', 'The Data Privacy Directive'],
+      correct: 2,
+      feedback: 'The Cybercrime Act 2025, passed by the Liberian Senate, is the landmark legislation covering unauthorized access, digital fraud, identity theft, online harassment, and data breaches.'
+    },
+    {
+      q: 'Someone calls claiming to be from your mobile money provider and asks for your OTP to "fix your account". What do you do?',
+      opts: ['Give them the OTP — they seem to know your account details', 'Hang up and call the official provider number yourself', 'Give them only the first three digits as a security test', 'Ask them to email you instead and share it there'],
+      correct: 1,
+      feedback: 'No legitimate organization — bank, mobile money provider, or government agency — will ever ask for your OTP over the phone. Hang up immediately and contact your provider using the official number on their website or app.'
+    },
+    {
+      q: 'What is the LCCPMA and what does it do for Liberian businesses?',
+      opts: ['A commercial fintech company selling cybersecurity software', 'Liberia\'s national body for cybercrime prevention, training, and forensics support', 'An ECOWAS-only regional cybersecurity committee', 'A World Bank cybersecurity audit program'],
+      correct: 1,
+      feedback: 'The Liberia Cyber Crime Prevention and Mitigation Agency (LCCPMA) is the national body providing free cybersecurity education, digital forensics training, and technical support to businesses and law enforcement across Liberia.'
+    }
+  ];
+
+  let scores = new Array(questions.length).fill(null);
+
+  function buildQuiz() {
+    const container = document.getElementById('quiz-container');
+    container.innerHTML = questions.map((q, i) => `
+      <div class="quiz-card">
+        <p class="quiz-q">${i + 1}. ${q.q}</p>
+        <div class="quiz-opts">
+          ${q.opts.map((opt, j) => `<button class="quiz-opt" id="qo-${i}-${j}" onclick="answerQ(${i},${j})">${opt}</button>`).join('')}
+        </div>
+        <div class="quiz-feedback" id="qf-${i}">${q.feedback}</div>
+      </div>
+    `).join('');
+  }
+
+  function answerQ(qi, chosen) {
+    if (scores[qi] !== null) return;
+    const q = questions[qi];
+    scores[qi] = chosen === q.correct ? 1 : 0;
+    for (let j = 0; j < q.opts.length; j++) {
+      const btn = document.getElementById(`qo-${qi}-${j}`);
+      btn.disabled = true;
+      if (j === q.correct) btn.classList.add('correct');
+      else if (j === chosen) btn.classList.add('wrong');
+    }
+    const fb = document.getElementById(`qf-${qi}`);
+    fb.classList.add('show', chosen === q.correct ? 'good' : 'bad');
+    updateScore();
+  }
+
+  function updateScore() {
+    const total = scores.filter(s => s !== null).reduce((a, b) => a + b, 0);
+    const pct = Math.round((total / questions.length) * 100);
+    document.getElementById('score-bar').style.width = pct + '%';
+    document.getElementById('score-txt').textContent = total + ' / ' + questions.length;
+  }
+
+  buildQuiz();
+
+  const assessItems = [
+    'We use strong, unique passwords for all business accounts',
+    'We have antivirus software installed and kept up to date',
+    'Staff have received cybersecurity awareness training in the past year',
+    'We regularly back up all business data to a secure location',
+    'We have a clear procedure for handling suspicious emails or messages',
+    'We know who to contact if we suffer a cyberattack or data breach',
+    'Customer data is stored securely and access is restricted to authorized staff only',
+    'We use two-factor authentication on key business accounts',
+    'We have reviewed our systems and practices since the Cybercrime Act 2025 was passed',
+    'We have an incident response plan or know the steps to take after a breach'
+  ];
+
+  let assessAnswers = {};
+
+  function buildAssess() {
+    const c = document.getElementById('assess-items');
+    c.innerHTML = assessItems.map((item, i) => `
+      <div class="assess-item">
+        <span class="assess-label">${item}</span>
+        <div class="assess-toggle">
+          <button class="toggle-btn" id="yes-${i}" onclick="toggleAssess(${i},'yes')">Yes</button>
+          <button class="toggle-btn" id="no-${i}" onclick="toggleAssess(${i},'no')">No</button>
+        </div>
+      </div>
+    `).join('');
+  }
+
+  function toggleAssess(i, val) {
+    assessAnswers[i] = val;
+    document.getElementById(`yes-${i}`).className = 'toggle-btn' + (val === 'yes' ? ' yes-active' : '');
+    document.getElementById(`no-${i}`).className = 'toggle-btn' + (val === 'no' ? ' no-active' : '');
+  }
+
+  function calcAssess() {
+    const yesCount = Object.values(assessAnswers).filter(v => v === 'yes').length;
+    const pct = Math.round((yesCount / assessItems.length) * 100);
+    let label, recs;
+    if (pct >= 80) {
+      label = 'Strong cyber hygiene — keep it up!';
+      recs = 'Your business shows excellent cybersecurity practices. Continue regular staff training, review your incident response plan quarterly, and stay updated on Cybercrime Act 2025 compliance requirements. Consider sharing your practices with peer businesses in your sector to strengthen the wider Liberian digital economy.';
+    } else if (pct >= 50) {
+      label = 'Moderate — key gaps need urgent attention';
+      recs = 'You have a foundation but important gaps remain. Priority actions: enable two-factor authentication on all accounts, schedule staff cybersecurity training, and establish a clear incident response procedure. Contact the LCCPMA via the Ministry of Posts & Telecommunications for free guidance and toolkits.';
+    } else {
+      label = 'High risk — immediate action needed';
+      recs = 'Your business is significantly exposed to cyber threats. Take action immediately: install antivirus software, create strong unique passwords for all accounts, back up your data offline, and contact the LCCPMA for free support. Note that the Cybercrime Act 2025 places legal responsibilities on businesses to protect customer data — non-compliance may result in liability.';
+    }
+    document.getElementById('res-score').textContent = pct + '%';
+    document.getElementById('res-label').textContent = label;
+    document.getElementById('res-recs').textContent = recs;
+    const r = document.getElementById('assess-result');
+    r.classList.add('show');
+    r.scrollIntoView({ behavior: 'smooth', block: 'nearest' });
+  }
+
+  buildAssess();
+
+  function showTab(tab, btn) {
+    document.querySelectorAll('.section').forEach(s => s.classList.remove('visible'));
+    document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+    document.getElementById('tab-' + tab).classList.add('visible');
+    btn.classList.add('active');
+  }
+
+  function buildCharts() {
+    if (!window.Chart) return;
+
+    new Chart(document.getElementById('barChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Phishing', 'Mobile money scams', 'Malware', 'Identity theft', 'Data breaches'],
+        datasets: [{
+          label: '% of SMEs affected',
+          data: [78, 65, 54, 48, 32],
+          backgroundColor: ['#042C53', '#185FA5', '#378ADD', '#85B7EB', '#B5D4F4'],
+          borderRadius: 5
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, indexAxis: 'y',
+        plugins: { legend: { display: false } },
+        scales: {
+          x: { max: 100, ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
+          y: { ticks: { font: { size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
+
+    new Chart(document.getElementById('pieChart'), {
+      type: 'doughnut',
+      data: {
+        labels: ['Not prepared', 'Partially prepared', 'Well prepared'],
+        datasets: [{ data: [52, 33, 15], backgroundColor: ['#E24B4A', '#EF9F27', '#639922'], borderWidth: 0 }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false, cutout: '60%',
+        plugins: { legend: { display: false } }
+      }
+    });
+
+    new Chart(document.getElementById('lineChart'), {
+      type: 'bar',
+      data: {
+        labels: ['Mobile penetration', '2G/3G coverage', '4G coverage', 'Internet penetration'],
+        datasets: [{
+          label: '% of population',
+          data: [59, 85, 80, 24],
+          backgroundColor: ['#5DCAA5', '#1D9E75', '#0F6E56', '#085041'],
+          borderRadius: 5
+        }]
+      },
+      options: {
+        responsive: true, maintainAspectRatio: false,
+        plugins: { legend: { display: false } },
+        scales: {
+          y: { max: 100, ticks: { callback: v => v + '%', font: { size: 11 } }, grid: { color: 'rgba(128,128,128,0.1)' } },
+          x: { ticks: { font: { size: 11 } }, grid: { display: false } }
+        }
+      }
+    });
+  }
+
+  window.addEventListener('load', buildCharts);
+</script>
+</body>
+</html>
